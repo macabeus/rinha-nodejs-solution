@@ -1,0 +1,14 @@
+{
+  "name": "nodejs-solution",
+  "version": "1.0.0",
+  "description": "Rinha!",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "node src/main.js"
+  },
+  "author": "macabeus e sofia",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
