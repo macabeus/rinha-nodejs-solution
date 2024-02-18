@@ -1,6 +1,6 @@
 const { Client } = require('pg');
-const express = require('express');
-const app = express();
+const fastify = require('fastify')({})
+// const jsonParser = require('fast-json-body');
 
 const client = new Client({
   host: 'db',
@@ -16,19 +16,23 @@ const databaseSetup = async () => {
 
 databaseSetup()
 
-app.use(express.json())
+// fastify.addContentTypeParser('application/jsoff', function (request, payload, done) {
+//   jsonParser(payload, function (err, body) {
+//     done(err, body)
+//   })
+// })
 
-app.get('/show_clientes', async (req, res) => {
+fastify.get('/show_clientes', async (req, res) => {
   const queryResult = await client.query(`SELECT * FROM clientes`)
   res.send(JSON.stringify(queryResult.rows))
 })
 
-app.get('/show_transacoes', async (req, res) => {
+fastify.get('/show_transacoes', async (req, res) => {
   const queryResult = await client.query(`SELECT * FROM transacoes`)
   res.send(JSON.stringify(queryResult.rows))
 })
 
-app.get('/clientes/:id/extrato', async (req, res) => {
+fastify.get('/clientes/:id/extrato', async (req, res) => {
   if (req.params.id < 1 || req.params.id > 5) {
     res.status(404).send()
     return
@@ -41,7 +45,7 @@ app.get('/clientes/:id/extrato', async (req, res) => {
   res.send(JSON.stringify(queryResult.rows[0]['generate_json_output']))
 })
 
-app.post('/clientes/:id/transacoes', async (req, res) => {
+fastify.post('/clientes/:id/transacoes', async (req, res) => {
   if (req.params.id < 1 || req.params.id > 5) {
     res.status(404).send()
     return
@@ -74,4 +78,10 @@ app.post('/clientes/:id/transacoes', async (req, res) => {
   }
 })
 
-app.listen(8080, () => console.log('Server is up and running'));
+fastify.listen({ port: 8080, host: '0.0.0.0' }, (err) => {
+  if (err) {
+    throw err
+  }
+
+  console.log('Server is up and running')
+});
