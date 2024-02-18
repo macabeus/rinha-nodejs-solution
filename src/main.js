@@ -34,7 +34,10 @@ app.get('/clientes/:id/extrato', async (req, res) => {
 })
 
 app.post('/clientes/:id/transacoes', async (req, res) => {
-  // INSERT INTO lists VALUES ((SELECT max(id)+1 FROM lists),'KO','SPH', '5');
+  if (req.params.id < 1 || req.params.id > 5) {
+    res.status(404).send()
+    return
+  }
 
   const {
     valor,
@@ -42,21 +45,15 @@ app.post('/clientes/:id/transacoes', async (req, res) => {
     descricao,
   } = req.body
 
-  const queryResult = await client.query(`
-    CALL InserirTransacao(${req.params.id}, ${valor}, '${tipo}'::transacao_tipo, '${descricao}');
-  `)
-
-  res.send(JSON.stringify(queryResult.rows))
-
-  // res.send(`{ "limite": ${queryResult.rows[0].limite}, "saldo": ${queryResult.rows[0].saldo} }`)
+  try {
+    const queryResult = await client.query(`
+      CALL InserirTransacao(${req.params.id}, ${valor}, '${tipo}'::transacao_tipo, '${descricao}');
+    `)
+  
+    res.send(JSON.stringify(queryResult.rows[0]))
+  } catch (e) {
+    res.status(422).send()
+  }
 })
-
-// POST /clientes/[id]/transacoes
-
-// {
-//     "valor": 1000,
-//     "tipo" : "c",
-//     "descricao" : "descricao"
-// }
 
 app.listen(8080, () => console.log('Server is up and running'));

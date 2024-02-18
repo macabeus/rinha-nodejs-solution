@@ -3,8 +3,8 @@ CREATE TYPE transacao_tipo AS ENUM ('c', 'd');
 CREATE TABLE IF NOT EXISTS clientes (
   id SERIAL PRIMARY KEY,
   nome TEXT NOT NULL,
-  limite INTEGER NOT NULL,
-  saldo INTEGER NOT NULL
+  t_limite INTEGER NOT NULL,
+  t_saldo INTEGER NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS transacoes (
@@ -27,21 +27,20 @@ CREATE PROCEDURE InserirTransacao(
 LANGUAGE plpgsql
 AS $$
 DECLARE
-    cliente_saldo INTEGER;
     novo_saldo INTEGER;
 BEGIN
-  SELECT saldo as _s, limite INTO cliente_saldo, limite FROM clientes WHERE id = _cliente_id;
+  SELECT t_saldo, t_limite INTO saldo, limite FROM clientes WHERE id = _cliente_id;
   
   IF _tipo = 'd' THEN
-    IF (cliente_saldo - _valor) < -limite THEN
+    IF (saldo - _valor) < -limite THEN
       RAISE EXCEPTION 'Saldo insuficiente para realizar a transacao';
     END IF;
 
-    novo_saldo := cliente_saldo - _valor;
-    UPDATE clientes SET saldo = novo_saldo WHERE id = _cliente_id RETURNING saldo INTO saldo;
+    novo_saldo := saldo - _valor;
+    UPDATE clientes SET t_saldo = novo_saldo WHERE id = _cliente_id RETURNING t_saldo INTO saldo;
   ELSE
-    novo_saldo := cliente_saldo + _valor;
-    UPDATE clientes SET saldo = novo_saldo WHERE id = _cliente_id RETURNING saldo INTO saldo;
+    novo_saldo := saldo + _valor;
+    UPDATE clientes SET t_saldo = novo_saldo WHERE id = _cliente_id RETURNING t_saldo INTO saldo;
   END IF;
 
   INSERT INTO transacoes(cliente_id, valor, tipo, descricao, realizada_em)
@@ -53,7 +52,7 @@ $$;
 
 DO $$
 BEGIN
-  INSERT INTO clientes (nome, limite, saldo)
+  INSERT INTO clientes (nome, t_limite, t_saldo)
   VALUES
     ('o barato sai caro', 1000 * 100, 0),
     ('zan corp ltda', 800 * 100, 0),
