@@ -1,13 +1,13 @@
 CREATE TYPE transacao_tipo AS ENUM ('c', 'd');
 
-CREATE TABLE IF NOT EXISTS clientes (
+CREATE UNLOGGED TABLE IF NOT EXISTS clientes (
   id SERIAL PRIMARY KEY,
   nome TEXT NOT NULL,
   t_limite INTEGER NOT NULL,
   t_saldo INTEGER NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS transacoes (
+CREATE UNLOGGED TABLE IF NOT EXISTS transacoes (
   id SERIAL PRIMARY KEY,
   cliente_id integer REFERENCES clientes,
   valor INTEGER NOT NULL,
