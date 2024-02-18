@@ -29,7 +29,7 @@ AS $$
 DECLARE
     novo_saldo INTEGER;
 BEGIN
-  SELECT t_saldo, t_limite INTO saldo, limite FROM clientes WHERE id = _cliente_id;
+  SELECT t_saldo, t_limite INTO saldo, limite FROM clientes WHERE id = _cliente_id FOR UPDATE;
   
   IF _tipo = 'd' THEN
     IF (saldo - _valor) < -limite THEN

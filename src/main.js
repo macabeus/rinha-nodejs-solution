@@ -53,6 +53,16 @@ app.post('/clientes/:id/transacoes', async (req, res) => {
     descricao,
   } = req.body
 
+  if (!descricao || typeof descricao !== 'string' || descricao.length === 0 || descricao.length > 10) {
+    res.status(422).send()
+    return
+  }
+
+  if (tipo !== 'd' && tipo !== 'c') {
+    res.status(422).send()
+    return
+  }
+
   try {
     const queryResult = await client.query(`
       CALL InserirTransacao(${req.params.id}, ${valor}, '${tipo}'::transacao_tipo, '${descricao}');
