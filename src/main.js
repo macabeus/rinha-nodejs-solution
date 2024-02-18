@@ -29,8 +29,16 @@ app.get('/show_transacoes', async (req, res) => {
 })
 
 app.get('/clientes/:id/extrato', async (req, res) => {
-  const queryResult = await client.query(`SELECT nome, limite FROM clientes WHERE id = ${req.params.id}`)
-  res.send(`Result: ${queryResult.rows[0].limite}`)
+  if (req.params.id < 1 || req.params.id > 5) {
+    res.status(404).send()
+    return
+  }
+
+  const queryResult = await client.query(`
+    SELECT generate_json_output(${req.params.id});
+  `)
+
+  res.send(JSON.stringify(queryResult.rows[0]['generate_json_output']))
 })
 
 app.post('/clientes/:id/transacoes', async (req, res) => {

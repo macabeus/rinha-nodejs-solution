@@ -48,6 +48,44 @@ BEGIN
 END;
 $$;
 
+CREATE OR REPLACE FUNCTION generate_json_output(_id integer) RETURNS JSON AS $$
+DECLARE
+  saldo_record RECORD;
+  ultimas_transacoes_json json[];
+  ultimas_transacoes_record RECORD;
+  saldo_total INTEGER := 0;
+  saldo_limite INTEGER := 0;
+BEGIN
+  SELECT t_saldo, t_limite INTO saldo_total, saldo_limite FROM clientes WHERE id = _id;
+
+  FOR ultimas_transacoes_record IN 
+    SELECT * FROM transacoes WHERE cliente_id = _id ORDER BY realizada_em DESC LIMIT 10
+  LOOP
+    ultimas_transacoes_json := ultimas_transacoes_json || 
+      ARRAY[json_build_object(
+        'valor', ultimas_transacoes_record.valor,
+        'tipo', ultimas_transacoes_record.tipo,
+        'descricao', ultimas_transacoes_record.descricao,
+        'realizada_em', ultimas_transacoes_record.realizada_em
+      )];
+  END LOOP;
+
+  IF array_length(ultimas_transacoes_json, 1) IS NULL THEN
+    ultimas_transacoes_json := array[]::varchar[];
+  END IF;
+
+  -- Construct the JSON object
+  RETURN json_build_object(
+    'saldo', json_build_object(
+      'total', saldo_total,
+      'data_extrato', NOW(),
+      'limite', saldo_limite
+    ),
+    'ultimas_transacoes', ultimas_transacoes_json
+  );
+END;
+$$ LANGUAGE plpgsql;
+
 -- seeds
 
 DO $$
