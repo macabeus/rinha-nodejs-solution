@@ -1,3 +1,6 @@
+ALTER DATABASE rinha SET log_error_verbosity to 'TERSE';
+ALTER DATABASE rinha SET log_min_error_statement to 'LOG';
+
 CREATE TYPE transacao_tipo AS ENUM ('c', 'd');
 
 CREATE UNLOGGED TABLE IF NOT EXISTS clientes (
@@ -37,11 +40,11 @@ BEGIN
     END IF;
 
     novo_saldo := saldo - _valor;
-    UPDATE clientes SET t_saldo = novo_saldo WHERE id = _cliente_id RETURNING t_saldo INTO saldo;
   ELSE
     novo_saldo := saldo + _valor;
-    UPDATE clientes SET t_saldo = novo_saldo WHERE id = _cliente_id RETURNING t_saldo INTO saldo;
   END IF;
+
+  UPDATE clientes SET t_saldo = novo_saldo WHERE id = _cliente_id RETURNING t_saldo INTO saldo;
 
   INSERT INTO transacoes(cliente_id, valor, tipo, descricao, realizada_em)
   VALUES(_cliente_id, _valor, _tipo, _descricao, NOW());

@@ -14,6 +14,14 @@ const databaseSetup = async () => {
   await client.connect()
 }
 
+app.use(function (req, res, next) {
+  res.removeHeader("x-powered-by");
+  res.removeHeader("Server");
+  res.removeHeader("Connection");
+
+  next();
+});
+
 databaseSetup()
 
 app.use(express.json())
@@ -30,7 +38,8 @@ app.get('/show_transacoes', async (req, res) => {
 
 app.get('/clientes/:id/extrato', async (req, res) => {
   if (req.params.id < 1 || req.params.id > 5) {
-    res.status(404).send()
+    res.writeHead(404)
+    res.end()
     return
   }
 
@@ -38,12 +47,15 @@ app.get('/clientes/:id/extrato', async (req, res) => {
     SELECT generate_json_output(${req.params.id});
   `)
 
-  res.send(JSON.stringify(queryResult.rows[0]['generate_json_output']))
+  res.writeHead(200)
+  res.write(JSON.stringify(queryResult.rows[0]['generate_json_output']))
+  res.end()
 })
 
 app.post('/clientes/:id/transacoes', async (req, res) => {
   if (req.params.id < 1 || req.params.id > 5) {
-    res.status(404).send()
+    res.writeHead(404)
+    res.end()
     return
   }
 
@@ -54,12 +66,8 @@ app.post('/clientes/:id/transacoes', async (req, res) => {
   } = req.body
 
   if (!descricao || typeof descricao !== 'string' || descricao.length === 0 || descricao.length > 10) {
-    res.status(422).send()
-    return
-  }
-
-  if (tipo !== 'd' && tipo !== 'c') {
-    res.status(422).send()
+    res.writeHead(422)
+    res.end()
     return
   }
 
@@ -68,9 +76,12 @@ app.post('/clientes/:id/transacoes', async (req, res) => {
       CALL InserirTransacao(${req.params.id}, ${valor}, '${tipo}'::transacao_tipo, '${descricao}');
     `)
   
-    res.send(JSON.stringify(queryResult.rows[0]))
+    res.writeHead(200)
+    res.write(JSON.stringify(queryResult.rows[0]))
+    res.end()
   } catch (e) {
-    res.status(422).send()
+    res.writeHead(422)
+    res.end()
   }
 })
 
