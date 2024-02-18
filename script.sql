@@ -21,27 +21,27 @@ CREATE PROCEDURE InserirTransacao(
   _valor integer,
   _tipo transacao_tipo,
   _descricao text,
-  OUT saldo_atual integer
+  INOUT saldo integer DEFAULT NULL,
+  INOUT limite integer DEFAULT NULL
 )
 LANGUAGE plpgsql
 AS $$
 DECLARE
     cliente_saldo INTEGER;
-    cliente_limite INTEGER;
     novo_saldo INTEGER;
 BEGIN
-  SELECT saldo, limite INTO cliente_saldo, cliente_limite FROM clientes WHERE id = _cliente_id;
+  SELECT saldo as _s, limite INTO cliente_saldo, limite FROM clientes WHERE id = _cliente_id;
   
   IF _tipo = 'd' THEN
-    IF (cliente_saldo - _valor) < cliente_limite THEN
+    IF (cliente_saldo - _valor) < -limite THEN
       RAISE EXCEPTION 'Saldo insuficiente para realizar a transacao';
     END IF;
 
     novo_saldo := cliente_saldo - _valor;
-    UPDATE clientes SET saldo = novo_saldo WHERE id = _cliente_id RETURNING saldo INTO saldo_atual;
+    UPDATE clientes SET saldo = novo_saldo WHERE id = _cliente_id RETURNING saldo INTO saldo;
   ELSE
     novo_saldo := cliente_saldo + _valor;
-    UPDATE clientes SET saldo = novo_saldo WHERE id = _cliente_id RETURNING saldo INTO saldo_atual;
+    UPDATE clientes SET saldo = novo_saldo WHERE id = _cliente_id RETURNING saldo INTO saldo;
   END IF;
 
   INSERT INTO transacoes(cliente_id, valor, tipo, descricao, realizada_em)

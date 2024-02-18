@@ -43,15 +43,7 @@ app.post('/clientes/:id/transacoes', async (req, res) => {
   } = req.body
 
   const queryResult = await client.query(`
-    DO $$
-    DECLARE
-        novo_saldo integer;
-    BEGIN
-        CALL InserirTransacao(${req.params.id}, ${valor}, '${tipo}'::transacao_tipo, '${descricao}', novo_saldo);
-
-        SELECT novo_saldo INTO novo_saldo;
-    END;
-    $$;
+    CALL InserirTransacao(${req.params.id}, ${valor}, '${tipo}'::transacao_tipo, '${descricao}');
   `)
 
   res.send(JSON.stringify(queryResult.rows))
